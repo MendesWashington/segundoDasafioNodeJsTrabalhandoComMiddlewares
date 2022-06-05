@@ -14,38 +14,43 @@ function checksExistsUserAccount(request, response, next) {
   const { username } = request.headers;
   const user = users.find((user) => user.username === username);
 
-  if (user) {
-    request.user = user;
-    return next();
-  } else {
+  if (!user) {
     return response.status(404).json({
-      error: "username does not belong to any user",
+      error: "username not exists",
     });
   }
+  request.user = user;
+  return next();
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
   // Complete aqui
   const { user } = request;
 
-  if ((!user.pro && user.todo.length < 11) || user.pro) {
+  if (user.pro) {
     return next();
   } else {
+    if (!user.pro && user.todos.length < 10) {
+      return next();
+    }
     return response.status(403).json({
       error: "user has reached the max todos limit with free plan",
     });
+
   }
+
 }
 
 function checksTodoExists(request, response, next) {
   // Complete aqui
   const { username } = request.headers;
-  const { id } = request.param;
+  const { id } = request.params;
 
   const user = users.find((user) => user.username === username);
-  const todo = user.todos.find((todo) => todo.id === id);
+
   if (user) {
     if (validate(id)) {
+      const todo = user.todos.find((todo) => todo.id === id);
       if (todo) {
         request.user = user;
         request.todo = todo;
@@ -69,7 +74,7 @@ function checksTodoExists(request, response, next) {
 
 function findUserById(request, response, next) {
   // Complete aqui
-  const { id } = request.param;
+  const { id } = request.params;
 
   const user = users.find((user) => user.id === id);
 
